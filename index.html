@@ -6,12 +6,12 @@
     <title>Dashboard - Sentinel</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
         <nav class="sidebar">
             <div class="sidebar-header">
                 <i class="ph-bold ph-eye"></i>
@@ -38,15 +38,17 @@
                 </li>
             </ul>
             <div class="sidebar-footer">
-                <a href="login.html" id="logout-button">
+                <a href="#" id="logout-button">
                     <i class="ph-bold ph-sign-out"></i>
                     <span>Logout</span>
                 </a>
             </div>
         </nav>
 
+        <!-- Main Content -->
         <main class="main-content">
-            
+
+            <!-- Daily Checks Panel -->
             <section class="content-panel active" id="daily-checks">
                 <div class="panel-header">
                     <h1>Daily Checks</h1>
@@ -67,8 +69,7 @@
                     <div class="progress-bar">
                         <div class="progress-bar-inner" id="progress-bar-inner"></div>
                     </div>
-                    <div class="logs-container" id="check-logs">
-                        </div>
+                    <div class="logs-container" id="check-logs"></div>
                 </div>
 
                 <div id="checks-complete-container" class="hidden">
@@ -81,6 +82,7 @@
                 </div>
             </section>
 
+            <!-- Generate Report Panel -->
             <section class="content-panel hidden" id="generate-report">
                 <div class="panel-header">
                     <h1>Generate Report</h1>
@@ -97,11 +99,11 @@
 
                 <div id="report-output-container" class="hidden">
                     <h3>Report for <span id="report-date-display"></span></h3>
-                    <div class="report-card-list" id="report-results">
-                        </div>
+                    <div class="report-card-list" id="report-results"></div>
                 </div>
             </section>
 
+            <!-- Website Links Panel -->
             <section class="content-panel hidden" id="website-links">
                 <div class="panel-header">
                     <h1>Manage Website Links</h1>
@@ -119,13 +121,14 @@
 
                 <div class="card">
                     <h3>Registered Websites</h3>
-                    <ul class="link-list" id="website-link-list">
-                        </ul>
+                    <ul class="link-list" id="website-link-list"></ul>
                 </div>
             </section>
+
         </main>
     </div>
 
+    <!-- JS -->
     <script src="script.js"></script>
 </body>
 </html>

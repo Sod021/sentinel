@@ -2,9 +2,8 @@
 // 1. SUPABASE CONFIGURATION
 // ==========================================
 const SUPABASE_URL = 'https://dpeoxwctxrjsliuczfkc.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwZW94d2N0eHJqc2xpdWN6ZmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTgzMjUsImV4cCI6MjA3ODU5NDMyNX0.Q0rlPRm5XDMgAM12op94srtdUqi4EdwfUdV__xjg99I';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwZW94d2N0eHJqc2xpdWN6ZmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTgzMjUsImV4cCI6MjA3ODU5NDMyNX0.Q0rlPRm5XDMgAM12op94srtdUqi4EdwfUd__xjg99I';
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 
 // ==========================================
 // 2. AUTHENTICATION FUNCTIONS
@@ -12,12 +11,10 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 async function checkAuth() {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error || !session) {
-        console.log('No valid session, redirecting to login.');
         window.location.href = 'login.html';
         return false;
     }
-    console.log('User logged in:', session.user.email);
-    return true;
+    return session.user; // return user object
 }
 
 async function handleLogout() {
@@ -25,22 +22,23 @@ async function handleLogout() {
     window.location.href = 'login.html';
 }
 
-
 // ==========================================
 // 3. MAIN APPLICATION LOGIC
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
 
     // A. Security Check
-    const isLoggedIn = await checkAuth();
-    if (!isLoggedIn) return;
+    const user = await checkAuth();
+    if (!user) return;
 
-    // B. Logout Button Listener
+    const userId = user.id;
+
+    // B. Logout Button
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
-        logoutButton.addEventListener('click', (e) => {
+        logoutButton.addEventListener('click', async (e) => {
             e.preventDefault();
-            handleLogout();
+            await handleLogout();
         });
     }
 
@@ -69,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ==========================================
-    // D. WEBSITE LINKS LOGIC
+    // D. WEBSITE LINKS LOGIC (per user)
     // ==========================================
     const websiteList = document.getElementById('website-link-list');
     const addLinkForm = document.getElementById('add-link-form');
@@ -78,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: websites, error } = await supabase
             .from('websites')
             .select('*')
+            .eq('user_id', userId)
             .order('id', { ascending: true });
 
         if (error) return console.error(error);
@@ -108,7 +107,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const { error } = await supabase
                         .from('websites')
                         .delete()
-                        .eq('id', id);
+                        .eq('id', id)
+                        .eq('user_id', userId);
                     if (error) return console.error(error);
                     loadWebsiteLinks();
                 }
@@ -122,14 +122,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const url = document.getElementById('new-link-url').value;
         const { error } = await supabase
             .from('websites')
-            .insert([{ name, url }]);
+            .insert([{ name, url, user_id: userId }]);
         if (error) return console.error(error);
         addLinkForm.reset();
         loadWebsiteLinks();
     });
 
     // ==========================================
-    // E. DAILY CHECKS LOGIC
+    // E. DAILY CHECKS LOGIC (per user)
     // ==========================================
     const startBtn = document.getElementById('start-checks-btn');
     const runAgainBtn = document.getElementById('run-checks-again-btn');
@@ -169,26 +169,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         logsContainer.innerHTML = '';
         progressBar.style.width = '0%';
 
-        // Fetch websites from Supabase
-        const { data: websites, error } = await supabase.from('websites').select('*');
+        // Fetch websites for this user
+        const { data: websites, error } = await supabase
+            .from('websites')
+            .select('*')
+            .eq('user_id', userId);
+
         if (error) return console.error(error);
 
-        const total = websites.length;
-        for (let i = 0; i < total; i++) {
+        for (let i = 0; i < websites.length; i++) {
             const site = websites[i];
-            statusText.textContent = `Checking (${i+1}/${total}): ${site.name}...`;
+            statusText.textContent = `Checking (${i+1}/${websites.length}): ${site.name}...`;
             const result = await simulateCheck(site);
 
-            // Save result to Supabase
             await supabase.from('daily_checks').insert([{
                 website_id: site.id,
+                user_id: userId,
                 is_live: result.is_live,
                 is_functional: result.is_functional,
                 notes: result.notes,
                 created_at: new Date()
             }]);
 
-            progressBar.style.width = `${((i+1)/total)*100}%`;
+            progressBar.style.width = `${((i+1)/websites.length)*100}%`;
         }
 
         statusText.textContent = 'All checks complete!';
@@ -202,7 +205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (runAgainBtn) runAgainBtn.addEventListener('click', startDailyChecks);
 
     // ==========================================
-    // F. REPORT GENERATION LOGIC
+    // F. REPORT GENERATION (per user)
     // ==========================================
     const generateReportBtn = document.getElementById('generate-report-btn');
     const datePicker = document.getElementById('report-date-picker');
@@ -217,10 +220,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const date = datePicker.value;
             reportDateDisplay.textContent = date;
 
-            // Fetch results for selected date
             const { data: results, error } = await supabase
                 .from('daily_checks')
                 .select(`*, websites(*)`)
+                .eq('user_id', userId)
                 .gte('created_at', date + 'T00:00:00')
                 .lte('created_at', date + 'T23:59:59');
 
@@ -255,4 +258,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     // G. INITIALIZATION
     // ==========================================
     loadWebsiteLinks();
+
 });
