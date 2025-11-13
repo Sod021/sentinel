@@ -2,19 +2,21 @@
 // 1. SUPABASE CONFIGURATION
 // ==========================================
 const SUPABASE_URL = 'https://dpeoxwctxrjsliuczfkc.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwZW94d2N0eHJqc2xpdWN6ZmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTgzMjUsImV4cCI6MjA3ODU5NDMyNX0.Q0rlPRm5XDMgAM12op94srtdUqi4EdwfUdV__xjg99I';
-// const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE'; // Replace with your anon key
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ==========================================
 // 2. AUTHENTICATION FUNCTIONS
 // ==========================================
 async function checkAuth() {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error || !session) {
+        console.log('No valid session, redirecting to login.');
         window.location.href = 'login.html';
         return false;
     }
-    return session.user; // return user object
+    console.log('User logged in:', session.user.email);
+    return true;
 }
 
 async function handleLogout() {
@@ -23,28 +25,39 @@ async function handleLogout() {
 }
 
 // ==========================================
-// 3. MAIN APPLICATION LOGIC
+// 3. DASHBOARD INITIALIZATION
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
+    // 3A. Auth check first
+    const isLoggedIn = await checkAuth();
+    if (!isLoggedIn) return;
 
-    // A. Security Check
-    const user = await checkAuth();
-    if (!user) return;
-
-    const userId = user.id;
-
-    // B. Logout Button
+    // 3B. Logout button
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
-        logoutButton.addEventListener('click', async (e) => {
+        logoutButton.addEventListener('click', (e) => {
             e.preventDefault();
-            await handleLogout();
+            handleLogout();
         });
     }
 
-    // ==========================================
-    // C. TAB SWITCHING LOGIC
-    // ==========================================
+    // 3C. Initialize tabs
+    initializeTabs();
+
+    // 3D. Initialize website links
+    initializeWebsiteLinks();
+
+    // 3E. Initialize daily checks
+    initializeDailyChecks();
+
+    // 3F. Initialize report generation
+    initializeReportGeneration();
+});
+
+// ==========================================
+// TAB SWITCHING
+// ==========================================
+function initializeTabs() {
     const navLinks = document.querySelectorAll('.nav-link');
     const contentPanels = document.querySelectorAll('.content-panel');
 
@@ -52,11 +65,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const tab = link.getAttribute('data-tab');
+
             navLinks.forEach(l => l.classList.remove('active'));
             contentPanels.forEach(p => {
                 p.classList.remove('active');
                 p.classList.add('hidden');
             });
+
             link.classList.add('active');
             const targetPanel = document.getElementById(tab);
             if (targetPanel) {
@@ -65,10 +80,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
+}
 
-    // ==========================================
-    // D. WEBSITE LINKS LOGIC (per user)
-    // ==========================================
+// ==========================================
+// WEBSITE LINKS LOGIC
+// ==========================================
+function initializeWebsiteLinks() {
     const websiteList = document.getElementById('website-link-list');
     const addLinkForm = document.getElementById('add-link-form');
 
@@ -76,7 +93,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: websites, error } = await supabase
             .from('websites')
             .select('*')
-            .eq('user_id', userId)
             .order('id', { ascending: true });
 
         if (error) return console.error(error);
@@ -107,8 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const { error } = await supabase
                         .from('websites')
                         .delete()
-                        .eq('id', id)
-                        .eq('user_id', userId);
+                        .eq('id', id);
                     if (error) return console.error(error);
                     loadWebsiteLinks();
                 }
@@ -116,21 +131,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    addLinkForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('new-link-name').value;
-        const url = document.getElementById('new-link-url').value;
-        const { error } = await supabase
-            .from('websites')
-            .insert([{ name, url, user_id: userId }]);
-        if (error) return console.error(error);
-        addLinkForm.reset();
-        loadWebsiteLinks();
-    });
+    if (addLinkForm) {
+        addLinkForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('new-link-name').value.trim();
+            const url = document.getElementById('new-link-url').value.trim();
+            if (!name || !url) return;
+            const { error } = await supabase
+                .from('websites')
+                .insert([{ name, url }]);
+            if (error) return console.error(error);
+            addLinkForm.reset();
+            loadWebsiteLinks();
+        });
+    }
 
-    // ==========================================
-    // E. DAILY CHECKS LOGIC (per user)
-    // ==========================================
+    loadWebsiteLinks();
+}
+
+// ==========================================
+// DAILY CHECKS LOGIC
+// ==========================================
+function initializeDailyChecks() {
     const startBtn = document.getElementById('start-checks-btn');
     const runAgainBtn = document.getElementById('run-checks-again-btn');
     const startContainer = document.getElementById('checks-start-container');
@@ -145,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         logEntry.className = `log-entry ${type}`;
         logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
         logsContainer.appendChild(logEntry);
-        logsContainer.scrollTop = logsContainer.scrollHeight; 
+        logsContainer.scrollTop = logsContainer.scrollHeight;
     }
 
     async function simulateCheck(site) {
@@ -163,35 +185,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function startDailyChecks() {
+        if (!startContainer || !progressContainer || !completeContainer) return;
+
         startContainer.classList.add('hidden');
         completeContainer.classList.add('hidden');
         progressContainer.classList.remove('hidden');
         logsContainer.innerHTML = '';
         progressBar.style.width = '0%';
 
-        // Fetch websites for this user
-        const { data: websites, error } = await supabase
-            .from('websites')
-            .select('*')
-            .eq('user_id', userId);
-
+        const { data: websites, error } = await supabase.from('websites').select('*');
         if (error) return console.error(error);
 
-        for (let i = 0; i < websites.length; i++) {
+        const total = websites.length;
+        for (let i = 0; i < total; i++) {
             const site = websites[i];
-            statusText.textContent = `Checking (${i+1}/${websites.length}): ${site.name}...`;
+            statusText.textContent = `Checking (${i+1}/${total}): ${site.name}...`;
             const result = await simulateCheck(site);
 
             await supabase.from('daily_checks').insert([{
                 website_id: site.id,
-                user_id: userId,
                 is_live: result.is_live,
                 is_functional: result.is_functional,
                 notes: result.notes,
                 created_at: new Date()
             }]);
 
-            progressBar.style.width = `${((i+1)/websites.length)*100}%`;
+            progressBar.style.width = `${((i+1)/total)*100}%`;
         }
 
         statusText.textContent = 'All checks complete!';
@@ -203,10 +222,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (startBtn) startBtn.addEventListener('click', startDailyChecks);
     if (runAgainBtn) runAgainBtn.addEventListener('click', startDailyChecks);
+}
 
-    // ==========================================
-    // F. REPORT GENERATION (per user)
-    // ==========================================
+// ==========================================
+// REPORT GENERATION LOGIC
+// ==========================================
+function initializeReportGeneration() {
     const generateReportBtn = document.getElementById('generate-report-btn');
     const datePicker = document.getElementById('report-date-picker');
     const reportOutputContainer = document.getElementById('report-output-container');
@@ -223,7 +244,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { data: results, error } = await supabase
                 .from('daily_checks')
                 .select(`*, websites(*)`)
-                .eq('user_id', userId)
                 .gte('created_at', date + 'T00:00:00')
                 .lte('created_at', date + 'T23:59:59');
 
@@ -253,10 +273,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             reportOutputContainer.classList.remove('hidden');
         });
     }
-
-    // ==========================================
-    // G. INITIALIZATION
-    // ==========================================
-    loadWebsiteLinks();
-
-});
+}
