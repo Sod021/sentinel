@@ -6,24 +6,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwZW94d2N0eHJqc2xpdWN6ZmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTgzMjUsImV4cCI6MjA3ODU5NDMyNX0.Q0rlPRm5XDMgAM12op94srtdUqi4EdwfUdV__xjg99I';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Check auth status
-    // checkAuth();
+    // --- AUTHENTICATION ---
+// Function to check if user is logged in
+async function checkAuth() {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+        console.error('Error getting session:', error);
+        return;
+    }
+    
+    if (!session) {
+        // No user session, redirect to login
+        console.log('No session found, redirecting to login.');
+        window.location.href = 'login.html';
+    } else {
+        // User is logged in
+        console.log('Session found, user is logged in:', session.user.email);
+    }
+}
+
+// Function to handle logout
+async function handleLogout() {
+    console.log('Logging out...');
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+        console.error('Error logging out:', error);
+    } else {
+        // Redirect to login page on successful logout
+        window.location.href = 'login.html';
+    }
+}
 
 
-    // --- MOCK DATA (Replace with Supabase calls) ---
-    let mockWebsites = [
-        { id: 1, name: 'Google', url: 'https://google.com' },
-        { id: 2, name: 'Company Blog', url: 'https://company.com/blog' },
-        { id: 3, name: 'Booking System', url: 'https://bookings.company.com' }
+// --- MAIN APP LOGIC ---
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- !! RUN AUTH CHECK ON PAGE LOAD !! ---
+    checkAuth();
+    
+    // --- !! ADD LOGOUT BUTTON LISTENER !! ---
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleLogout();
+        });
+    }
+
+    // --- (Your existing mock data can be removed later) ---
+    let mockWebsites = [ 
+        /* ... */ 
     ];
-
-    let mockReports = {
-        "2025-11-13": [
-            { id: 1, name: 'Google', isLive: true, isFunctional: true, notes: 'All systems nominal.' },
-            { id: 2, name: 'Company Blog', isLive: true, isFunctional: true, notes: 'Forms submitted.' },
-            { id: 3, name: 'Booking System', isLive: true, isFunctional: false, notes: 'Booking form API returned 500.' }
-        ]
+    let mockReports = { 
+        /* ... */ 
     };
+
+    // --- (All your other code for navigation, panels, etc. goes here) ---
+    const navLinks = document.querySelectorAll('.nav-link');
+    // ... all your other functions ...
+
+});
 
     // --- NAVIGATION / TAB SWITCHING ---
     const navLinks = document.querySelectorAll('.nav-link');
