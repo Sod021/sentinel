@@ -6,51 +6,19 @@ const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE'; // Replace with your anon ke
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ==========================================
-// 2. AUTHENTICATION FUNCTIONS
+// 2. DASHBOARD INITIALIZATION
 // ==========================================
-async function checkAuth() {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error || !session) {
-        console.log('No valid session, redirecting to login.');
-        window.location.href = 'login.html';
-        return false;
-    }
-    console.log('User logged in:', session.user.email);
-    return true;
-}
-
-async function handleLogout() {
-    await supabase.auth.signOut();
-    window.location.href = 'login.html';
-}
-
-// ==========================================
-// 3. DASHBOARD INITIALIZATION
-// ==========================================
-document.addEventListener('DOMContentLoaded', async () => {
-    // 3A. Auth check first
-    const isLoggedIn = await checkAuth();
-    if (!isLoggedIn) return;
-
-    // 3B. Logout button
-    const logoutButton = document.getElementById('logout-button');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            handleLogout();
-        });
-    }
-
-    // 3C. Initialize tabs
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize tabs
     initializeTabs();
 
-    // 3D. Initialize website links
+    // Initialize website links
     initializeWebsiteLinks();
 
-    // 3E. Initialize daily checks
+    // Initialize daily checks
     initializeDailyChecks();
 
-    // 3F. Initialize report generation
+    // Initialize report generation
     initializeReportGeneration();
 });
 
