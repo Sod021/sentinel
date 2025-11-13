@@ -1,134 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sentinel</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Sentinel</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <!-- Sidebar Navigation -->
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <i class="ph-bold ph-eye"></i>
-                <span>Sentinel</span>
-            </div>
-            <ul class="nav-links">
-                <li>
-                    <a href="#" class="nav-link active" data-tab="daily-checks">
-                        <i class="ph-bold ph-calendar-check"></i>
-                        <span>Daily Checks</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" data-tab="generate-report">
-                        <i class="ph-bold ph-chart-line-up"></i>
-                        <span>Generate Report</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" data-tab="website-links">
-                        <i class="ph-bold ph-link"></i>
-                        <span>Website Links</span>
-                    </a>
-                </li>
-            </ul>
-            <div class="sidebar-footer">
-                <a href="#" id="logout-button">
-                    <i class="ph-bold ph-sign-out"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </nav>
+  <div class="dashboard-container">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <i class="ph-bold ph-eye"></i>
+        <span>Sentinel</span>
+      </div>
+      <ul class="nav-links">
+        <li>
+          <a href="#" class="nav-link active" data-tab="daily-checks">
+            <i class="ph-bold ph-calendar-check"></i>
+            <span>Daily Checks</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-tab="generate-report">
+            <i class="ph-bold ph-chart-line-up"></i>
+            <span>Generate Report</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link" data-tab="website-links">
+            <i class="ph-bold ph-link"></i>
+            <span>Website Links</span>
+          </a>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <a href="#" id="logout-button">
+          <i class="ph-bold ph-sign-out"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </nav>
 
-        <!-- Main Content -->
-        <main class="main-content">
+    <main class="main-content">
 
-            <!-- Daily Checks Panel -->
-            <section class="content-panel active" id="daily-checks">
-                <div class="panel-header">
-                    <h1>Daily Checks</h1>
-                    <p>Good morning! Ready to start your checks?</p>
-                </div>
+      <!-- Daily Checks Panel -->
+      <section class="content-panel active" id="daily-checks">
+        <div class="panel-header">
+          <h1>Daily Checks</h1>
+          <p>Good morning! Ready to start your checks?</p>
+        </div>
 
-                <div id="checks-start-container">
-                    <div class="card large-card center-card">
-                        <i class="ph-rocket-launch ph-4x" style="color: var(--primary-dark);"></i>
-                        <h2>Ready for Today's Checks?</h2>
-                        <p>Click the button to begin checking all registered websites.</p>
-                        <button class="btn-primary" id="start-checks-btn">Get Started</button>
-                    </div>
-                </div>
+        <div id="checks-start-container">
+          <div class="card large-card center-card">
+            <i class="ph-rocket-launch ph-4x" style="color: var(--primary-dark);"></i>
+            <h2>Ready for Today's Checks?</h2>
+            <p>Click the button to begin checking all registered websites.</p>
+            <button class="btn-primary" id="start-checks-btn">Get Started</button>
+          </div>
+        </div>
 
-                <div id="checks-progress-container" class="hidden">
-                    <h2 id="current-check-status">Starting checks...</h2>
-                    <div class="progress-bar">
-                        <div class="progress-bar-inner" id="progress-bar-inner"></div>
-                    </div>
-                    <div class="logs-container" id="check-logs"></div>
-                </div>
+        <div id="checks-progress-container" class="hidden">
+          <h2 id="current-check-status">Starting checks...</h2>
+          <div class="progress-bar">
+            <div class="progress-bar-inner" id="progress-bar-inner"></div>
+          </div>
+          <div class="logs-container" id="check-logs"></div>
+        </div>
 
-                <div id="checks-complete-container" class="hidden">
-                    <div class="card large-card center-card">
-                        <i class="ph-check-circle ph-4x" style="color: green;"></i>
-                        <h2>Checks Complete!</h2>
-                        <p>All websites have been checked for today. Results are saved.</p>
-                        <button class="btn-secondary" id="run-checks-again-btn">Run Again</button>
-                    </div>
-                </div>
-            </section>
+        <div id="checks-complete-container" class="hidden">
+          <div class="card large-card center-card">
+            <i class="ph-check-circle ph-4x" style="color: green;"></i>
+            <h2>Checks Complete!</h2>
+            <p>All websites have been checked for today. Results are saved.</p>
+            <button class="btn-secondary" id="run-checks-again-btn">Run Again</button>
+          </div>
+        </div>
+      </section>
 
-            <!-- Generate Report Panel -->
-            <section class="content-panel hidden" id="generate-report">
-                <div class="panel-header">
-                    <h1>Generate Report</h1>
-                    <p>Select a date to view the check results.</p>
-                </div>
-                
-                <div class="card">
-                    <h3>Select Report Date</h3>
-                    <div class="report-controls">
-                        <input type="date" id="report-date-picker">
-                        <button class="btn-primary" id="generate-report-btn">Generate</button>
-                    </div>
-                </div>
+      <!-- Generate Report Panel -->
+      <section class="content-panel hidden" id="generate-report">
+        <div class="panel-header">
+          <h1>Generate Report</h1>
+          <p>Select a date to view the check results.</p>
+        </div>
 
-                <div id="report-output-container" class="hidden">
-                    <h3>Report for <span id="report-date-display"></span></h3>
-                    <div class="report-card-list" id="report-results"></div>
-                </div>
-            </section>
+        <div class="card">
+          <h3>Select Report Date</h3>
+          <div class="report-controls">
+            <input type="date" id="report-date-picker">
+            <button class="btn-primary" id="generate-report-btn">Generate</button>
+          </div>
+        </div>
 
-            <!-- Website Links Panel -->
-            <section class="content-panel hidden" id="website-links">
-                <div class="panel-header">
-                    <h1>Manage Website Links</h1>
-                    <p>Add, edit, or remove websites to be monitored.</p>
-                </div>
+        <div id="report-output-container" class="hidden">
+          <h3>Report for <span id="report-date-display"></span></h3>
+          <div class="report-card-list" id="report-results"></div>
+        </div>
+      </section>
 
-                <div class="card">
-                    <h3>Add New Website</h3>
-                    <form id="add-link-form" class="form-inline">
-                        <input type="text" id="new-link-name" placeholder="Website Name (e.g., 'Company Blog')" required>
-                        <input type="url" id="new-link-url" placeholder="https://example.com" required>
-                        <button type="submit" class="btn-primary">Add Site</button>
-                    </form>
-                </div>
+      <!-- Website Links Panel -->
+      <section class="content-panel hidden" id="website-links">
+        <div class="panel-header">
+          <h1>Manage Website Links</h1>
+          <p>Add, edit, or remove websites to be monitored.</p>
+        </div>
 
-                <div class="card">
-                    <h3>Registered Websites</h3>
-                    <ul class="link-list" id="website-link-list"></ul>
-                </div>
-            </section>
+        <div class="card">
+          <h3>Add New Website</h3>
+          <form id="add-link-form" class="form-inline">
+            <input type="text" id="new-link-name" placeholder="Website Name" required>
+            <input type="url" id="new-link-url" placeholder="https://example.com" required>
+            <button type="submit" class="btn-primary">Add Site</button>
+          </form>
+        </div>
 
-        </main>
-    </div>
+        <div class="card">
+          <h3>Registered Websites</h3>
+          <ul class="link-list" id="website-link-list"></ul>
+        </div>
+      </section>
 
-    <!-- JS -->
-    <script src="script.js"></script>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
