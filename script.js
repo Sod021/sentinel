@@ -3,7 +3,7 @@
 // ==========================================
 const SUPABASE_URL = 'https://dpeoxwctxrjsliuczfkc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwZW94d2N0eHJqc2xpdWN6ZmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMTgzMjUsImV4cCI6MjA3ODU5NDMyNX0.Q0rlPRm5XDMgAM12op94srtdUqi4EdwfUdV__xjg99I';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ==========================================
 // 2. AUTHENTICATION FUNCTIONS
